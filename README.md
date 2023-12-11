@@ -1,1 +1,1 @@
-# fine-grained-image-segmentation
+# Fine-grained Image Segmentation
