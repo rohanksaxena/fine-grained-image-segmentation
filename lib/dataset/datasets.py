@@ -56,12 +56,10 @@ class Dataset:
         """
         Build the dataloader
         """
-
         self.dataset_name = dataset_name
         self.set = dataset_set
 
         if dataset_name == "VOC07":
-            # self.root_path = "datasets/VOC2007"
             self.root_path = "data/voc2007trainval"
             self.year = "2007"
         elif dataset_name == "VOC12":
