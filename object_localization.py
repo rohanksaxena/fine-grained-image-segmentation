@@ -4,18 +4,21 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from skimage.color import rgb2lab
-from superpixel import Superpixel
 import matplotlib.pyplot as plt
-from model import SSN_DINO
+import cv2
+import argparse
 import scipy.sparse
 from scipy.sparse.linalg import eigsh
+from torchvision import transforms
+from skimage.color import rgb2lab
+from skimage.segmentation import mark_boundaries
+from skimage.segmentation._slic import _enforce_label_connectivity_cython
 from accelerate import Accelerator
 from tqdm import tqdm
-import cv2
-from torchvision import transforms
-from skimage.segmentation._slic import _enforce_label_connectivity_cython
 from torch.utils.data import DataLoader
+
+from superpixel import Superpixel
+from model import SSN_DINO
 from lib.dataset.datasets import Dataset, bbox_iou
 
 
@@ -142,13 +145,10 @@ def inference(ssnmodel, path, image, nspix, n_iter, fdim=None, color_scale=0.26,
 
 
 if __name__ == "__main__":
-    import time
-    import argparse
-    import matplotlib.pyplot as plt
-    from skimage.segmentation import mark_boundaries
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--weight", default=None, type=str, help="/path/to/pretrained_weight")
+    parser.add_argument("--image", default=None, type=str, help="Path of target image")
     parser.add_argument("--fdim", default=20, type=int, help="embedding dimension")
     parser.add_argument("--niter", default=10, type=int, help="number of iterations for differentiable SLIC")
     parser.add_argument("--nspix", default=500, type=int, help="number of superpixels")
@@ -177,11 +177,6 @@ if __name__ == "__main__":
         im_name = dataset.get_image_name(inp[1])
         img = inp[0]
         init_image_size = img.shape
-        # Get the name of the image
-
-        # Pass in case of no gt boxes in the image
-        if im_name is None:
-            continue
 
         # Padding the image with zeros to fit multiple of patch-size
         size_im = (
