@@ -318,4 +318,3 @@ if __name__ == "__main__":
                                   facecolor='none',
                                   lw=4))
     plt.savefig("result.jpg")
-
