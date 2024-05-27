@@ -170,9 +170,6 @@ if __name__ == "__main__":
     model_name = "dino_vits16"
     model, val_transform, patch_size, num_heads = get_model(model_name)
 
-    # Load dataset
-    print(f"Num spix: {args.nspix}")
-
     img = skimage.io.imread(args.image)
     init_image_size = img.shape
 
@@ -224,8 +221,13 @@ if __name__ == "__main__":
     max_size = int(3.0 * segment_size)
     plabels = _enforce_label_connectivity_cython(labels[None], min_size, max_size)[0]
 
+    # Check superpixels
+    plt.imshow(mark_boundaries(org_img, plabels))
+    plt.savefig(f"{args.image[:-4]}_spixel.jpg")
+
     plabels = torch.tensor(plabels)
     reshaped_labels = plabels.reshape(-1, height, width)
+
     spixel_list, superpixels = extract_superpixels(reshaped_labels, num_spixels_width, height, width)
 
     # Extract features from Dino
@@ -301,12 +303,17 @@ if __name__ == "__main__":
     eigenvector = eigenvectors[1].numpy()
 
     segmap = eigenvector > 0.0
+    
     y = segmap
     y = 1 * y
 
     # Instance seg logic
     for i in range(len(y)):
         plabels[plabels == i] = y[i]
+
+    temp = plabels.numpy()
+    plt.imshow(temp)
+    plt.savefig(f"{args.image[:-4]}_segmap.jpg")
 
     if (torch.sum(plabels) == 0):
         bbox = [0, 0, width, height]
@@ -317,4 +324,4 @@ if __name__ == "__main__":
                                   edgecolor='red',
                                   facecolor='none',
                                   lw=4))
-    plt.savefig("result.jpg")
+    plt.savefig(f"{args.image[:-4]}_result.jpg")
