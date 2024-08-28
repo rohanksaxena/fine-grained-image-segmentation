@@ -56,5 +56,5 @@ Sample results: <br></br>
 
 
 ## References
-[1^]: https://github.com/NVlabs/ssn_superpixels
+[^1]: https://github.com/NVlabs/ssn_superpixels
 [^2]: https://github.com/perrying/ssn-pytorch
