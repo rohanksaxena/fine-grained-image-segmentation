@@ -37,8 +37,16 @@ Run the following code to train your own SSN_DINO:<br></br>
 python train_ssn_dino.py
 ```
 
+You can also use our trained model from the directory `model_checkpoints/ssn_dino.pth`
+
+```
+python infer_ssn_dino.py --image /path/to/image
+```
+
 Sample results: <br></br>
-![myplabels](https://github.com/user-attachments/assets/a5931fc6-7c9d-4203-8543-a26df4090c22) ![001](https://github.com/user-attachments/assets/a78eae07-ac62-4cc9-b742-47edc3692ec2)
+<img src="https://github.com/user-attachments/assets/a5931fc6-7c9d-4203-8543-a26df4090c22" alt="myplabels"  width="450px" height="300px">
+<img src="https://github.com/user-attachments/assets/a78eae07-ac62-4cc9-b742-47edc3692ec2" alt="001"  width="450px" height="300px">
+
 
 
 
