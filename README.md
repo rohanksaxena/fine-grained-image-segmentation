@@ -56,11 +56,44 @@ Sample results: <br></br>
 ## Object Localization and Segmentation
 We use SSN_DINO to extract individual superpixels along with their features. Then we follow the Deep Spectral Methods [^1]{^2] approach at the superpixel level to construct an affinity matrix of superpixels and then discretize the superpixels which belong to the dominant object in the image. 
 
-We can run the object localization task on PASCAL VOC 2007 and PASCAL VOC 2012 using the below commands. You can also pass additional parameters for e.g. the number of superpixels, model checkpoint and the dataset.
+We can run the object localization task on PASCAL VOC 2007 and PASCAL VOC 2012 trainval datasets. You can also pass additional parameters for e.g. the number of superpixels, model checkpoint and the dataset.
 
+### PASCAL VOC 2007
+Your directory structure should look like below:
+```
+project_root/
+└──data/
+  └── voc2007trainval/
+    └── VOCdevkit/
+      └── VOC2007/
+          ├── Annotations/
+          ├── ImageSets/
+          ├── JPEGImages/
+          ├── SegmentationClass/
+          └── SegmentationObject/
+```
+Run the below command:
+```
+python object_localization.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'VOC07' --nspix '100'
+```
+
+### PASCAL VOC 2012
+Your directory structure should look like below:
+```
+project_root/
+└──data/
+  └── voc2012trainval/
+    └── VOCdevkit/
+      └── VOC2012/
+          ├── Annotations/
+          ├── ImageSets/
+          ├── JPEGImages/
+          ├── SegmentationClass/
+          └── SegmentationObject/
+```
+Run the below command:
 ```
 python object_localization.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'VOC12' --nspix '100'
-python object_localization.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'VOC07' --nspix '100'
 ```
 
 Sample object localization results: <br></br>
