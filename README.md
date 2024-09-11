@@ -70,6 +70,10 @@ project_root/
           ├── SegmentationClass/
           └── SegmentationObject/
 ```
+Install the requirements:
+```
+pip install -r requirements_ssn.txt
+```
 Run the below command:
 ```
 python object_localization.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'VOC07' --nspix '100'
