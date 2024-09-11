@@ -37,7 +37,6 @@ def inference(image, nspix, n_iter, fdim=None, color_scale=0.26, pos_scale=2.5, 
     """
     from model import SSN_DINO
     if weight is not None:
-        print("Loading model")
         model = SSN_DINO(fdim, nspix, n_iter).to("cuda")
         model.load_state_dict(torch.load(weight))
         model.eval()
@@ -47,7 +46,7 @@ def inference(image, nspix, n_iter, fdim=None, color_scale=0.26, pos_scale=2.5, 
     height, width = image.shape[:2]
 
     nspix_per_axis = int(math.sqrt(nspix))
-    pos_scale = pos_scale * max(nspix_per_axis/height, nspix_per_axis/width)
+    pos_scale = pos_scale * max(nspix_per_axis / height, nspix_per_axis / width)
 
     coords = torch.stack(torch.meshgrid(torch.arange(height, device="cuda"), torch.arange(width, device="cuda")), 0)
     coords = coords[None].float()
@@ -55,7 +54,7 @@ def inference(image, nspix, n_iter, fdim=None, color_scale=0.26, pos_scale=2.5, 
     image = rgb2lab(image)
     image = torch.from_numpy(image).permute(2, 0, 1)[None].to("cuda").float()
 
-    Q, H, feats, num_spixels_width, num_spixels_height, tokens = model(color_scale*image, pos_scale*coords)
+    Q, H, feats, num_spixels_width, num_spixels_height, tokens = model(color_scale * image, pos_scale * coords)
 
     labels = H.reshape(height, width).to("cpu").detach().numpy()
 
@@ -74,9 +73,11 @@ if __name__ == "__main__":
     import argparse
     import matplotlib.pyplot as plt
     from skimage.segmentation import mark_boundaries
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--image", type=str, help="", default="Sooty_Albatross_0031_1066.jpg")
-    parser.add_argument("--weight", default="model_checkpoints/ssn_dino.pth", type=str, help="/path/to/pretrained_weight")
+    parser.add_argument("--weight", default="model_checkpoints/ssn_dino.pth", type=str,
+                        help="/path/to/pretrained_weight")
     parser.add_argument("--fdim", default=20, type=int, help="embedding dimension")
     parser.add_argument("--niter", default=10, type=int, help="number of iterations for differentiable SLIC")
     parser.add_argument("--nspix", default=100, type=int, help="number of superpixels")

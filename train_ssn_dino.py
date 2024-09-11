@@ -1,16 +1,13 @@
 import os, math
 import numpy as np
-import time
 import torch
 import torch.optim as optim
-import sys
 from torch.utils.data import DataLoader
 
 from lib.utils.meter import Meter
 from model import SSN_DINO
 from lib.dataset import bsds, augmentation
 from lib.utils.loss import reconstruct_loss_with_cross_etnropy, reconstruct_loss_with_mse
-
 
 
 @torch.no_grad()
@@ -44,12 +41,12 @@ def eval(model, loader, color_scale, pos_scale, device):
         height, width = inputs.shape[-2:]
 
         nspix_per_axis = int(math.sqrt(model.nspix))
-        pos_scale = pos_scale * max(nspix_per_axis/height, nspix_per_axis/width)
+        pos_scale = pos_scale * max(nspix_per_axis / height, nspix_per_axis / width)
 
         coords = torch.stack(torch.meshgrid(torch.arange(height, device=device), torch.arange(width, device=device)), 0)
         coords = coords[None].repeat(inputs.shape[0], 1, 1, 1).float()
 
-        Q, H, feat, num_spixels_width, num_spixels_height, tokens = model(color_scale*inputs, pos_scale*coords)
+        Q, H, feat, num_spixels_width, num_spixels_height, tokens = model(color_scale * inputs, pos_scale * coords)
 
         H = H.reshape(height, width)
         labels = labels.argmax(1).reshape(height, width)
@@ -69,12 +66,12 @@ def update_param(data, model, optimizer, compactness, color_scale, pos_scale, de
     height, width = inputs.shape[-2:]
 
     nspix_per_axis = int(math.sqrt(model.nspix))
-    pos_scale = pos_scale * max(nspix_per_axis/height, nspix_per_axis/width)
+    pos_scale = pos_scale * max(nspix_per_axis / height, nspix_per_axis / width)
 
     coords = torch.stack(torch.meshgrid(torch.arange(height, device=device), torch.arange(width, device=device)), 0)
     coords = coords[None].repeat(inputs.shape[0], 1, 1, 1).float()
 
-    Q, H, feat, num_spixels_width, feature_maps, tokens = model(color_scale*inputs, pos_scale*coords)
+    Q, H, feat, num_spixels_width, feature_maps, tokens = model(color_scale * inputs, pos_scale * coords)
     recons_loss = reconstruct_loss_with_cross_etnropy(Q, labels)
     compact_loss = reconstruct_loss_with_mse(Q, coords.reshape(*coords.shape[:2], -1), H)
 
@@ -97,7 +94,8 @@ def train(cfg):
     model.train()
 
     optimizer = optim.Adam(model.parameters(), cfg.lr)
-    augment = augmentation.Compose([augmentation.RandomHorizontalFlip(), augmentation.RandomScale(), augmentation.RandomCrop()])
+    augment = augmentation.Compose(
+        [augmentation.RandomHorizontalFlip(), augmentation.RandomScale(), augmentation.RandomCrop()])
     train_dataset = bsds.BSDS(cfg.root, geo_transforms=augment)
     train_loader = DataLoader(train_dataset, cfg.batchsize, shuffle=True, drop_last=True, num_workers=cfg.nworkers)
     test_dataset = bsds.BSDS(cfg.root, split="val")
@@ -110,12 +108,12 @@ def train(cfg):
     while iterations < cfg.train_iter:
         for data in train_loader:
             iterations += 1
-            metric = update_param(data, model, optimizer, cfg.compactness, cfg.color_scale, cfg.pos_scale,  device)
+            metric = update_param(data, model, optimizer, cfg.compactness, cfg.color_scale, cfg.pos_scale, device)
             meter.add(metric)
             state = meter.state(f"[{iterations}/{cfg.train_iter}]")
             print(state)
             if (iterations % cfg.test_interval) == 0:
-                asa = eval(model, test_loader, cfg.color_scale, cfg.pos_scale,  device)
+                asa = eval(model, test_loader, cfg.color_scale, cfg.pos_scale, device)
                 print(f"validation asa {asa}")
                 if asa > max_val_asa:
                     max_val_asa = asa
@@ -123,8 +121,10 @@ def train(cfg):
             if iterations == cfg.train_iter:
                 break
 
+
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--root", type=str, help="path to dataset", default="./data/BSDS500")
