@@ -51,8 +51,6 @@ Sample results: <br></br>
 <img src="https://github.com/user-attachments/assets/a78eae07-ac62-4cc9-b742-47edc3692ec2" alt="001"  width="450px" height="300px">
 
 
-
-
 ## Object Localization and Segmentation
 We use SSN_DINO to extract individual superpixels along with their features. Then we follow the Deep Spectral Methods [^1]{^2] approach at the superpixel level to construct an affinity matrix of superpixels and then discretize the superpixels which belong to the dominant object in the image. 
 
@@ -101,6 +99,71 @@ Sample object localization results: <br></br>
 <img src="https://github.com/user-attachments/assets/ece7caf7-f4df-4983-a48c-ed2ae53690cc" alt="001"  width="450px" height="300px">
 
 We can run the object segmentation task on the CUB-200-2011, ECSSD, DUTS and DUT-OMRON datasets using the below commands. You can also pass additional parameters for e.g. the number of superpixels, model checkpoint and the dataset.
+
+### CUB-200-2011
+Your directory structure should look like below:
+```
+project_root/
+└──data/
+  └── CUB/
+    └── CUB_200_2011/
+        ├── attributes/
+        ├── images/
+        ├── parts/
+        ├── segmentations/
+        ├── bounding_boxes
+        ├── classes
+        ├── image_class_labels
+        ├── images
+        ├── README
+        └── train_test_split
+```
+Run the below command:
+```
+python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'CUB' --nspix '100'
+```
+
+### ECSSD
+Your directory structure should look like below:
+```
+project_root/
+└──data/
+  └── ECSSD-data/
+      ├── images/
+      └── ground_truth_mask/
+```
+Run the below command:
+```
+python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'ECSSD' --nspix '100'
+```
+
+### DUTS
+Your directory structure should look like below:
+```
+project_root/
+└──data/
+  └── DUTS/
+      ├── DUTS-TE-Image/
+      └── DUTS-TE-Mask/
+```
+Run the below command:
+```
+python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'DUTS' --nspix '100'
+```
+
+### DUT-OMRON
+Your directory structure should look like below:
+```
+project_root/
+└──data/
+  └── DUT-OMRON/
+      ├── DUT-OMRON-image/
+      └── pixelwiseGT-new-PNG/
+```
+Run the below command:
+```
+python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'DUT-OMRON' --nspix '100'
+```
 
 To perform inference on your own image:
 ```
