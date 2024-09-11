@@ -165,11 +165,17 @@ Run the below command:
 python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'DUT-OMRON' --nspix '100'
 ```
 
-To perform inference on your own image:
+Sample object segmentation results:
+
+<img src="https://github.com/user-attachments/assets/ed132a88-294d-4fd5-be95-5b72c88b15f6"  alt="os1"  width="450px" height="300px">
+<img src="https://github.com/user-attachments/assets/4180a033-2cd3-4bfa-93a3-58ee2e3ac90a"  alt="os2"  width="450px" height="300px">
+
+<br><br>
+
+To perform localization and segmentation inference on your own image:
 ```
 python infer_localization_and_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --image /path/to/image
 ```
-
 
 
 
