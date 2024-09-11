@@ -1,13 +1,13 @@
-import math
 import os
+import math
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import cv2
 import argparse
 import scipy.sparse
+
 from scipy.sparse.linalg import eigsh
 from torchvision import transforms
 from skimage.color import rgb2lab
@@ -16,10 +16,10 @@ from skimage.segmentation._slic import _enforce_label_connectivity_cython
 from accelerate import Accelerator
 from tqdm import tqdm
 from torch.utils.data import DataLoader
-
 from superpixel import Superpixel
 from model import SSN_DINO
 from lib.dataset.datasets import Dataset, bbox_iou
+from matplotlib.patches import Rectangle
 
 
 def get_largest_cc_box(mask: np.array):
@@ -30,46 +30,6 @@ def get_largest_cc_box(mask: np.array):
     ymin, ymax = min(mask[0]), max(mask[0]) + 1
     xmin, xmax = min(mask[1]), max(mask[1]) + 1
     return [xmin, ymin, xmax, ymax]
-
-
-def knn_affinity(image, n_neighbors=[20, 10], distance_weights=[2.0, 0.1]):
-    """Computes a KNN-based affinity matrix. Note that this function requires pymatting"""
-    try:
-        from pymatting.util.kdtree import knn
-    except:
-        raise ImportError(
-            'Please install pymatting to compute KNN affinity matrices:\n'
-            'pip3 install pymatting'
-        )
-
-    h, w = image.shape[:2]
-    r, g, b = image.reshape(-1, 3).T
-    n = w * h
-
-    x = np.tile(np.linspace(0, 1, w), h)
-    y = np.repeat(np.linspace(0, 1, h), w)
-
-    i, j = [], []
-
-    for k, distance_weight in zip(n_neighbors, distance_weights):
-        f = np.stack(
-            [r, g, b, distance_weight * x, distance_weight * y],
-            axis=1,
-            out=np.zeros((n, 5), dtype=np.float32),
-        )
-
-        distances, neighbors = knn(f, f, k=k)
-
-        i.append(np.repeat(np.arange(n), k))
-        j.append(neighbors.flatten())
-
-    ij = np.concatenate(i + j)
-    ji = np.concatenate(j + i)
-    coo_data = np.ones(2 * sum(n_neighbors) * n)
-
-    # This is our affinity matrix
-    W = scipy.sparse.csr_matrix((coo_data, (ij, ji)), (n, n))
-    return W
 
 
 def get_transform(name: str):
@@ -84,7 +44,7 @@ def get_transform(name: str):
 def get_model(name: str):
     if 'dino' in name:
         model = torch.hub.load('facebookresearch/dino:main', name)
-        model.fc = torch.nn.Identity()
+        model.fc = nn.Identity()
         val_transform = get_transform(name)
         patch_size = model.patch_embed.patch_size
         num_heads = model.blocks[0].attn.num_heads
@@ -168,13 +128,13 @@ if __name__ == "__main__":
     model, val_transform, patch_size, num_heads = get_model(model_name)
 
     # Load dataset
-    print(f"Num spix: {args.nspix}")
     dataset = Dataset(args.dataset, "trainval", args.no_hard)
     pbar = tqdm(dataset.dataloader)
     cnt = 0
     corloc = np.zeros(len(dataset.dataloader))
     for im_id, inp in enumerate(pbar):
         im_name = dataset.get_image_name(inp[1])
+        im_name_wo_ext = im_name[:-4]
         img = inp[0]
         init_image_size = img.shape
 
@@ -216,6 +176,10 @@ if __name__ == "__main__":
         min_size = int(0.06 * segment_size)
         max_size = int(3.0 * segment_size)
         plabels = _enforce_label_connectivity_cython(labels[None], min_size, max_size)[0]
+
+        # Uncomment below piece of code to visualize superpixel segmentations
+        # plt.imshow(mark_boundaries(org_img, plabels))
+        # plt.savefig(f"VOC{dataset.year}_results/{im_name_wo_ext}_spixel.jpg")
 
         plabels = torch.tensor(plabels)
         reshaped_labels = plabels.reshape(-1, height, width)
@@ -301,10 +265,25 @@ if __name__ == "__main__":
         for i in range(len(y)):
             plabels[plabels == i] = y[i]
 
+        temp = plabels.numpy()
+
+        # Uncomment the below lines to visualize segmentation maps
+        # plt.imshow(temp)
+        # plt.savefig(f"VOC{dataset.year}_results/{im_name_wo_ext}_segmap.jpg")
+
         if (torch.sum(plabels) == 0):
             bbox = [0, 0, width, height]
         else:
             bbox = get_largest_cc_box(plabels)
+
+        # Uncomment below lines to visualize bounding boxes
+        plt.imshow(org_img)
+        plt.gca().add_patch(Rectangle((bbox[0], bbox[1]), bbox[2] - bbox[0], bbox[3] - bbox[1],
+                                      edgecolor='red',
+                                      facecolor='none',
+                                      lw=4))
+        plt.savefig(f"VOC{dataset.year}_results/{im_name_wo_ext}_result.jpg")
+        plt.close()
 
         # Corloc
         ious = bbox_iou(torch.from_numpy(np.asarray(bbox)), torch.from_numpy(gt_bbxs))
@@ -314,5 +293,4 @@ if __name__ == "__main__":
 
         cnt += 1
 
-    print(f"Corloc: {corloc}")
     print(f"Corloc: {100 * np.sum(corloc) / cnt:.2f} ({int(np.sum(corloc))}/{cnt})")
