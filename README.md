@@ -52,11 +52,11 @@ Sample results: <br></br>
 
 
 ## Object Localization and Segmentation
-We use SSN_DINO to extract individual superpixels along with their features. Then we follow the Deep Spectral Methods [^1]{^2] approach at the superpixel level to construct an affinity matrix of superpixels and then discretize the superpixels which belong to the dominant object in the image. 
+We use SSN_DINO to extract individual superpixels along with their features. Then we follow the Deep Spectral Methods [^1] [^2] approach at the superpixel level to construct an affinity matrix of superpixels and then discretize the superpixels which belong to the dominant object in the image. 
 
 We can run the object localization task on PASCAL VOC 2007 and PASCAL VOC 2012 trainval datasets. You can also pass additional parameters for e.g. the number of superpixels, model checkpoint and the dataset.
 
-### PASCAL VOC 2007
+### PASCAL VOC 2007 (Download <a href="http://host.robots.ox.ac.uk/pascal/VOC/voc2007/"> here</a>).
 Your directory structure should look like below:
 ```
 project_root/
@@ -79,7 +79,7 @@ Run the below command:
 python object_localization.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'VOC07' --nspix '100'
 ```
 
-### PASCAL VOC 2012
+### PASCAL VOC 2012 (Download <a href="http://host.robots.ox.ac.uk/pascal/VOC/voc2012/"> here</a>).
 Your directory structure should look like below:
 ```
 project_root/
@@ -104,7 +104,7 @@ Sample object localization results: <br></br>
 
 We can run the object segmentation task on the CUB-200-2011, ECSSD, DUTS and DUT-OMRON datasets using the below commands. You can also pass additional parameters for e.g. the number of superpixels, model checkpoint and the dataset.
 
-### CUB-200-2011
+### CUB-200-2011 (Download <a href="https://www.vision.caltech.edu/datasets/cub_200_2011/"> here</a>).
 Your directory structure should look like below:
 ```
 project_root/
@@ -127,7 +127,7 @@ Run the below command:
 python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'CUB' --nspix '100'
 ```
 
-### ECSSD
+### ECSSD (Download <a href="https://www.cse.cuhk.edu.hk/leojia/projects/hsaliency/dataset.html">here</a>).
 Your directory structure should look like below:
 ```
 project_root/
@@ -141,7 +141,7 @@ Run the below command:
 python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'ECSSD' --nspix '100'
 ```
 
-### DUTS
+### DUTS (Download <a href="http://saliencydetection.net/duts/">here</a>).
 Your directory structure should look like below:
 ```
 project_root/
@@ -155,7 +155,7 @@ Run the below command:
 python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'DUTS' --nspix '100'
 ```
 
-### DUT-OMRON
+### DUT-OMRON (Download <a href="http://saliencydetection.net/dut-omron/"> here</a>).
 Your directory structure should look like below:
 ```
 project_root/
