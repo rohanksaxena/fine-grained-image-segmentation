@@ -102,7 +102,7 @@ Sample object localization results: <br></br>
 <img src="https://github.com/user-attachments/assets/3a14afa0-3fd2-4dd0-9b00-e0f9e560a142" alt="myplabels"  width="450px" height="300px">
 <img src="https://github.com/user-attachments/assets/ece7caf7-f4df-4983-a48c-ed2ae53690cc" alt="001"  width="450px" height="300px">
 
-We can run the object segmentation task on the CUB-200-2011, ECSSD, DUTS and DUT-OMRON datasets using the below commands. You can also pass additional parameters for e.g. the number of superpixels, model checkpoint and the dataset.
+We can run the object segmentation task on the CUB-200-2011, ECSSD, DUTS and DUT-OMRON datasets using the below commands. We can use either the "Superpixels + Deep Spectral Methods" script or the "Superpixel + DeepCut" script. Both give similar results.  You can also pass additional parameters for e.g. the number of superpixels, model checkpoint and the dataset.
 
 ### CUB-200-2011 (Download <a href="https://www.vision.caltech.edu/datasets/cub_200_2011/"> here</a>).
 Your directory structure should look like below:
@@ -125,6 +125,7 @@ project_root/
 Run the below command:
 ```
 python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'CUB' --nspix '100'
+python object_segmentation_deepcut.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'CUB' --nspix '100'
 ```
 
 ### ECSSD (Download <a href="https://www.cse.cuhk.edu.hk/leojia/projects/hsaliency/dataset.html">here</a>).
@@ -139,6 +140,7 @@ project_root/
 Run the below command:
 ```
 python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'ECSSD' --nspix '100'
+python object_segmentation_deepcut.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'ECSSD' --nspix '100'
 ```
 
 ### DUTS (Download <a href="http://saliencydetection.net/duts/">here</a>).
@@ -153,6 +155,7 @@ project_root/
 Run the below command:
 ```
 python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'DUTS' --nspix '100'
+python object_segmentation_deepcut.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'DUTS' --nspix '100'
 ```
 
 ### DUT-OMRON (Download <a href="http://saliencydetection.net/dut-omron/"> here</a>).
@@ -167,6 +170,7 @@ project_root/
 Run the below command:
 ```
 python object_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'DUT-OMRON' --nspix '100'
+python object_segmentation_deepcut.py --weight 'model_checkpoints/ssn_dino.pth' --dataset 'DUT-OMRON' --nspix '100'
 ```
 
 Sample object segmentation results:
