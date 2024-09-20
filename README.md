@@ -1,4 +1,4 @@
-# SuperCuts: Fine-Grained Image Segmentation
+# SuperCuts: Unsupervised Fine-Grained Image Segmentation using Superpixels, Spectral Analysis and Graph Neural Networks
 
 ![image](https://github.com/user-attachments/assets/c14621e7-0fb7-4ec6-926f-dd40fb3e2986)
 
