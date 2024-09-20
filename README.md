@@ -51,7 +51,7 @@ Sample results: <br></br>
 <img src="https://github.com/user-attachments/assets/a78eae07-ac62-4cc9-b742-47edc3692ec2" alt="001"  width="450px" height="300px">
 
 
-## Object Localization and Segmentation
+## Object Localization
 We use SSN_DINO to extract individual superpixels along with their features. Then we follow the Deep Spectral Methods [^1] [^2] approach at the superpixel level to construct an affinity matrix of superpixels and then discretize the superpixels which belong to the dominant object in the image. 
 
 We can run the object localization task on PASCAL VOC 2007 and PASCAL VOC 2012 trainval datasets. You can also pass additional parameters for e.g. the number of superpixels, model checkpoint and the dataset.
@@ -102,6 +102,7 @@ Sample object localization results: <br></br>
 <img src="https://github.com/user-attachments/assets/3a14afa0-3fd2-4dd0-9b00-e0f9e560a142" alt="myplabels"  width="450px" height="300px">
 <img src="https://github.com/user-attachments/assets/ece7caf7-f4df-4983-a48c-ed2ae53690cc" alt="001"  width="450px" height="300px">
 
+## Object Segmentation
 We can run the object segmentation task on the CUB-200-2011, ECSSD, DUTS and DUT-OMRON datasets using the below commands. We can use either the "Superpixels + Deep Spectral Methods" script or the "Superpixel + DeepCut" script. Both give similar results.  You can also pass additional parameters for e.g. the number of superpixels, model checkpoint and the dataset.
 
 ### CUB-200-2011 (Download <a href="https://www.vision.caltech.edu/datasets/cub_200_2011/"> here</a>).
