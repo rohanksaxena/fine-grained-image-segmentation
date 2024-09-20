@@ -107,13 +107,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--weight", default=None, type=str, help="/path/to/pretrained_weight")
-    parser.add_argument("--image", default=None, type=str, help="Path of target image")
     parser.add_argument("--fdim", default=20, type=int, help="embedding dimension")
     parser.add_argument("--niter", default=10, type=int, help="number of iterations for differentiable SLIC")
     parser.add_argument("--nspix", default=500, type=int, help="number of superpixels")
     parser.add_argument("--color_scale", default=0.26, type=float)
     parser.add_argument("--pos_scale", default=2.5, type=float)
-    parser.add_argument("--layer_number", default=3, type=int)
     parser.add_argument("--dataset", type=str, help="dataset")
     parser.add_argument("--no_hard", action="store_true", help="in case of VOC_all setup")
     parser.add_argument("--patch_size", default=16, type=int, help="Patch resolution of the model.")
@@ -276,13 +274,13 @@ if __name__ == "__main__":
             bbox = get_largest_cc_box(plabels)
 
         # Uncomment below lines to visualize bounding boxes
-        plt.imshow(org_img)
-        plt.gca().add_patch(Rectangle((bbox[0], bbox[1]), bbox[2] - bbox[0], bbox[3] - bbox[1],
-                                      edgecolor='red',
-                                      facecolor='none',
-                                      lw=4))
-        plt.savefig(f"VOC{dataset.year}_results/{im_name_wo_ext}_result.jpg")
-        plt.close()
+        # plt.imshow(org_img)
+        # plt.gca().add_patch(Rectangle((bbox[0], bbox[1]), bbox[2] - bbox[0], bbox[3] - bbox[1],
+        #                               edgecolor='red',
+        #                               facecolor='none',
+        #                               lw=4))
+        # plt.savefig(f"VOC{dataset.year}_results/{im_name_wo_ext}_result.jpg")
+        # plt.close()
 
         # Corloc
         ious = bbox_iou(torch.from_numpy(np.asarray(bbox)), torch.from_numpy(gt_bbxs))
