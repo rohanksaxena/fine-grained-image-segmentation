@@ -28,16 +28,6 @@ def compute_iou(pred, target):
     return iou
 
 
-def get_largest_cc_box(mask: np.array):
-    from skimage.measure import label as measure_label
-    labels = measure_label(mask)  # get connected components
-    largest_cc_index = np.argmax(np.bincount(labels.flat)[1:]) + 1
-    mask = np.where(labels == largest_cc_index)
-    ymin, ymax = min(mask[0]), max(mask[0]) + 1
-    xmin, xmax = min(mask[1]), max(mask[1]) + 1
-    return [xmin, ymin, xmax, ymax]
-
-
 def get_transform(name: str):
     if any(x in name for x in ('dino', 'mocov3', 'convnext',)):
         normalize = transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
@@ -125,7 +115,6 @@ if __name__ == "__main__":
     parser.add_argument("--color_scale", default=0.26, type=float)
     parser.add_argument("--pos_scale", default=2.5, type=float)
     parser.add_argument("--layer_number", default=3, type=int)
-    parser.add_argument("--mlp_weight", type=str, help="path to pretrained mlp")
     parser.add_argument("--dataset", type=str, help="dataset")
     parser.add_argument("--wandb_key", type=str, help="Your wandb key")
     parser.add_argument("--wandb_entity", type=str, help="Entity name")
