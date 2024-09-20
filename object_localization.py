@@ -15,7 +15,6 @@ from skimage.segmentation import mark_boundaries
 from skimage.segmentation._slic import _enforce_label_connectivity_cython
 from accelerate import Accelerator
 from tqdm import tqdm
-from torch.utils.data import DataLoader
 from superpixel import Superpixel
 from model import SSN_DINO
 from lib.dataset.datasets import Dataset, bbox_iou
