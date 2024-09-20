@@ -1,9 +1,7 @@
 import math
-# import os
 import numpy as np
 import torch
 import torch.nn as nn
-# import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import cv2
 import argparse
@@ -15,8 +13,6 @@ from skimage.color import rgb2lab
 from skimage.segmentation import mark_boundaries
 from skimage.segmentation._slic import _enforce_label_connectivity_cython
 from accelerate import Accelerator
-# from tqdm import tqdm
-# from torch.utils.data import DataLoader
 from torchvision import transforms
 from matplotlib.patches import Rectangle
 from superpixel import Superpixel
@@ -116,13 +112,10 @@ if __name__ == "__main__":
     parser.add_argument("--nspix", default=100, type=int, help="number of superpixels")
     parser.add_argument("--color_scale", default=0.26, type=float)
     parser.add_argument("--pos_scale", default=2.5, type=float)
-    parser.add_argument("--layer_number", default=3, type=int)
-    parser.add_argument("--dataset", type=str, help="dataset")
-    parser.add_argument("--no_hard", action="store_true", help="in case of VOC_all setup")
     parser.add_argument("--patch_size", default=16, type=int, help="Patch resolution of the model.")
     args = parser.parse_args()
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     ssnmodel = SSN_DINO(args.fdim, args.nspix, args.niter).to(device)
     ssnmodel.load_state_dict(torch.load(args.weight))
 
@@ -182,9 +175,10 @@ if __name__ == "__main__":
     plabels = _enforce_label_connectivity_cython(labels[None], min_size, max_size)[0]
 
     # Check superpixels
-    plt.imshow(mark_boundaries(org_img, plabels))
-    plt.axis('off')
-    plt.savefig(f"{args.image[:-4]}_spixel.jpg", bbox_inches='tight', pad_inches=0)
+    # Uncomment below lines to view the superpixel segmentation
+    # plt.imshow(mark_boundaries(org_img, plabels))
+    # plt.axis('off')
+    # plt.savefig(f"{args.image[:-4]}_spixel.jpg", bbox_inches='tight', pad_inches=0)
 
     plabels = torch.tensor(plabels)
     reshaped_labels = plabels.reshape(-1, height, width)
@@ -273,17 +267,21 @@ if __name__ == "__main__":
         plabels[plabels == i] = y[i]
 
     temp = plabels.numpy()
-    plt.imshow(temp)
-    plt.axis('off')
-    plt.savefig(f"{args.image[:-4]}_segmap.jpg", bbox_inches='tight', pad_inches=0)
+
+    # Uncomment below lines to view segmentation map
+    # plt.imshow(temp)
+    # plt.axis('off')
+    # plt.savefig(f"{args.image[:-4]}_segmap.jpg", bbox_inches='tight', pad_inches=0)
 
     if (torch.sum(plabels) == 0):
         bbox = [0, 0, width, height]
     else:
         bbox = get_largest_cc_box(plabels)
-    plt.imshow(image)
-    plt.gca().add_patch(Rectangle((bbox[0], bbox[1]), bbox[2] - bbox[0], bbox[3] - bbox[1],
-                                  edgecolor='red',
-                                  facecolor='none',
-                                  lw=4))
-    plt.savefig(f"{args.image[:-4]}_result.jpg", bbox_inches='tight', pad_inches=0)
+
+    # Uncomment below lines to view localization bounding box
+    # plt.imshow(image)
+    # plt.gca().add_patch(Rectangle((bbox[0], bbox[1]), bbox[2] - bbox[0], bbox[3] - bbox[1],
+    #                               edgecolor='red',
+    #                               facecolor='none',
+    #                               lw=4))
+    # plt.savefig(f"{args.image[:-4]}_result.jpg", bbox_inches='tight', pad_inches=0)
