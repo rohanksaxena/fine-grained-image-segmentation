@@ -1,26 +1,24 @@
 import os
-import sys
 import cv2
 import math
 import util
 import torch
 import argparse
+import skimage.io
 import numpy as np
+import scipy.sparse
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
 
-from tqdm import tqdm
-from skimage.color import rgb2lab
+from model import SSN_DINO
 from superpixel import Superpixel
+from skimage.color import rgb2lab
 from extractor import ViTExtractor
-from torch.utils.data import DataLoader
-from lib.ssn.ssn import sparse_ssn_iter
 from features_extract import deep_features
 from skimage.segmentation import mark_boundaries
-from lib.dataset.PartsDataset import PartsDataset
-from sklearn.metrics import normalized_mutual_info_score
 from skimage.segmentation._slic import _enforce_label_connectivity_cython
+
 
 
 def GNN_seg(image_path, plabels, num_spixels_width, num_spixels_height, spixel_list, mode, cut, alpha, epoch, K,
@@ -236,7 +234,6 @@ def inference(res, img, nspix, n_iter, fdim=None, color_scale=0.26, pos_scale=2.
             An array of shape (h, w)
     """
     if weight is not None:
-        from model import SSN_DINO
         model = SSN_DINO(fdim, nspix, n_iter).to("cuda")
         model.load_state_dict(torch.load(weight, weights_only=True))
         model.eval()
@@ -261,127 +258,91 @@ def inference(res, img, nspix, n_iter, fdim=None, color_scale=0.26, pos_scale=2.
 
     return Q, H, feats, num_spixels_width, num_spixels_height, labels
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weight", default="", type=str, help="/path/to/pretrained_weight")
+    parser.add_argument("--weight", default=None, type=str, help="/path/to/pretrained_weight")
+    parser.add_argument("--image", default=None, type=str, help="Path of target image")
     parser.add_argument("--fdim", default=20, type=int, help="embedding dimension")
     parser.add_argument("--niter", default=10, type=int, help="number of iterations for differentiable SLIC")
     parser.add_argument("--nspix", default=100, type=int, help="number of superpixels")
     parser.add_argument("--color_scale", default=0.26, type=float)
     parser.add_argument("--pos_scale", default=2.5, type=float)
-
-    enforce_connectivity = True
+    parser.add_argument("--patch_size", default=16, type=int, help="Patch resolution of the model.")
     args = parser.parse_args()
 
-    # Load dataset
-    dataset = PartsDataset("CUB", mode="test")
-    dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
-    pbar = tqdm(dataloader)
-    nmis = []
-    id2part = dataset.parts_info
-    num_kps = 15
-    for img, mask, img_path, mask_path, name, id, parts in pbar:
-        img_name = name[0].split("/")[-1]
-        img_path = img_path[0]
-        image = plt.imread(img_path)
-        h, w, _ = image.shape
-        if len(image.shape) != 3:
-            continue
-        res = (280, 280)
-        num_patches_width = 35
-        Q, H, superpixel_features, num_spixels_width, num_spixels_height, labels = inference(res, img_path, args.nspix,
-                                                                                             args.niter,
-                                                                                             args.fdim,
-                                                                                             args.color_scale,
-                                                                                             args.pos_scale,
-                                                                                             args.weight,
-                                                                                             enforce_connectivity=False)
-        image = cv2.imread(img_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = cv2.resize(image, res)
-        height, width = res
-        segment_size = height * width / args.nspix
-        min_size = int(0.06 * segment_size)
-        max_size = int(3.0 * segment_size)
-        labels = H.reshape(height, width)
-        reshaped_labels = labels.reshape(-1, height, width)
-        labels = labels.to("cpu").detach().numpy()
-        plabels = _enforce_label_connectivity_cython(labels[None], min_size, max_size)[0]
-        plabels = torch.tensor(plabels)
-        reshaped_labels = plabels.reshape(-1, height, width)
-        spixel_list, superpixels = extract_superpixels(reshaped_labels, num_spixels_width, height, width)
+    img_name = args.image.split("/")[-1].split(".")[0]
+    print(f"Image name: {img_name}")
+    image = plt.imread(args.image)
+    res = (280, 280)
+    num_patches_width = 35
+    Q, H, superpixel_features, num_spixels_width, num_spixels_height, labels = inference(res, args.image, args.nspix,
+                                                                                         args.niter,
+                                                                                         args.fdim,
+                                                                                         args.color_scale,
+                                                                                         args.pos_scale,
+                                                                                         args.weight,
+                                                                                         enforce_connectivity=False)
+    image = cv2.imread(args.image)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = cv2.resize(image, res)
+    height, width = res
+    segment_size = height * width / args.nspix
+    min_size = int(0.06 * segment_size)
+    max_size = int(3.0 * segment_size)
+    labels = H.reshape(height, width)
+    reshaped_labels = labels.reshape(-1, height, width)
+    labels = labels.to("cpu").detach().numpy()
+    plabels = _enforce_label_connectivity_cython(labels[None], min_size, max_size)[0]
+    plabels = torch.tensor(plabels)
+    reshaped_labels = plabels.reshape(-1, height, width)
+    spixel_list, superpixels = extract_superpixels(reshaped_labels, num_spixels_width, height, width)
 
-        patch_size = 8
-        for idx, spix in enumerate(spixel_list):
-            spix.col = round(spix.centroid[1].item())
-            spix.row = round(spix.centroid[0].item())
-            patch_row = spix.row // patch_size
-            patch_col = spix.col // patch_size
-            spix.patch = patch_row * num_patches_width + patch_col
 
-        # Single Stage Segmentation
-        mode = 1
-        cut = 0
-        alpha = 3
-        # Numbers of epochs per stage [mode0,mode1,mode2]
-        epochs = [10, 100, 10]
-        step = 1
-        K = 4
-        # Show only largest component in segmentation map (for k == 2)
-        cc = False
-        # apply bilateral solver
-        bs = False
-        # Apply log binning to extracted descriptors (correspond to smoother segmentation maps)
-        log_bin = False
-        pretrained_weights = './dino_deitsmall8_pretrain_full_checkpoint.pth'
-        stride = 8
-        facet = 'key'
-        layer = 11
-        save = True
+    patch_size = 8
+    for idx, spix in enumerate(spixel_list):
+        spix.col = round(spix.centroid[1].item())
+        spix.row = round(spix.centroid[0].item())
+        patch_row = spix.row // patch_size
+        patch_col = spix.col // patch_size
+        spix.patch = patch_row * num_patches_width + patch_col
 
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # Single Stage Segmentation
+    mode = 1
+    cut = 0
+    alpha = 3
+    # Numbers of epochs per stage [mode0,mode1,mode2]
+    epochs = [10, 100, 10]
+    step = 1
+    K = 4
+    # Show only largest component in segmentation map (for k == 2)
+    cc = False
+    # apply bilateral solver
+    bs = False
+    # Apply log binning to extracted descriptors (correspond to smoother segmentation maps)
+    log_bin = False
+    pretrained_weights = './dino_deitsmall8_pretrain_full_checkpoint.pth'
+    stride = 8
+    facet = 'key'
+    layer = 11
+    save = True
 
-        # If Directory doesn't exist than download
-        if not os.path.exists(pretrained_weights):
-            url = 'https://dl.fbaipublicfiles.com/dino/dino_deitsmall8_pretrain/dino_deitsmall8_pretrain_full_checkpoint.pth'
-            util.download_url(url, pretrained_weights)
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-        S = GNN_seg(img_path, plabels, num_spixels_width, num_spixels_height, spixel_list, mode, cut, alpha, epochs, K,
-                    pretrained_weights, save, cc, bs, log_bin, res,
-                    facet, layer, stride, device)
+    # If Directory doesn't exist than download
+    if not os.path.exists(pretrained_weights):
+        url = 'https://dl.fbaipublicfiles.com/dino/dino_deitsmall8_pretrain/dino_deitsmall8_pretrain_full_checkpoint.pth'
+        util.download_url(url, pretrained_weights)
 
-        for i in range(len(spixel_list)):
-            plabels[plabels == i] = len(spixel_list) + S[i]
+    S = GNN_seg(args.image, plabels, num_spixels_width, num_spixels_height, spixel_list, mode, cut, alpha, epochs, K,
+                pretrained_weights, save, cc, bs, log_bin, res,
+                facet, layer, stride, device)
 
-        plabels -= len(spixel_list)
-        plabels = plabels.to("cpu").detach().numpy()
+    for i in range(len(spixel_list)):
+        plabels[plabels == i] = len(spixel_list) + S[i]
 
-        # Uncomment below line to save part-segmented images
-        # plt.imsave(f"{img_name}.jpg", mark_boundaries(image, plabels))
+    plabels -= len(spixel_list)
+    plabels = plabels.to("cpu").detach().numpy()
 
-        parts = id2part[id * num_kps - num_kps: id * num_kps][:, 1:]
-        parts = np.expand_dims(parts, axis=0)
-        parts = torch.tensor(parts)
-        visible = parts[:, :, 3] > 0.5
-        points = parts[:, :, 1:3]
-        points = torch.unsqueeze(points, dim=2)
-        points = points[visible]
-        points = torch.squeeze(points)
-        points = np.asarray(points)
-        points[:, 0] /= w
-        points[:, 1] /= h
-        points = points * 280
-        pred_parts = []
-        for point in points:
-            pred_parts.append(plabels[int(point[0]), int(point[1])])
-        pred_parts_loc = np.asarray(pred_parts)
-
-        gt_parts_loc = torch.arange(parts.shape[1]).unsqueeze(0).repeat(parts.shape[0], 1)
-        gt_parts_loc = gt_parts_loc[visible]
-        nmi = normalized_mutual_info_score(gt_parts_loc, pred_parts_loc) * 100
-        pbar.set_description(f"img: {img_name}, nmi: {nmi:.4f}")
-        nmis.append(nmi)
-
-print(f"NMIs: {sum(nmis) / len(nmis)}")
+    # Uncomment below line to save part-segmented images
+    plt.imsave(f"{img_name}_parts.jpg", mark_boundaries(image, plabels))
