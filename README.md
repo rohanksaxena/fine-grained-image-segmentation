@@ -52,7 +52,7 @@ Sample results: <br></br>
 
 
 ## Object Localization
-We use SSN_DINO to extract individual superpixels along with their features. Then we follow the Deep Spectral Methods [^1] [^2] approach at the superpixel level to construct an affinity matrix of superpixels and then discretize the superpixels which belong to the dominant object in the image. 
+We use SSN_DINO to extract individual superpixels along with their features. Then we follow the Deep Spectral Methods [^3] [^4] [^5] approach at the superpixel level to construct an affinity matrix of superpixels and then discretize the superpixels which belong to the dominant object in the image. 
 
 We can run the object localization task on PASCAL VOC 2007 and PASCAL VOC 2012 trainval datasets. You can also pass additional parameters for e.g. the number of superpixels, model checkpoint and the dataset.
 
@@ -186,14 +186,26 @@ To perform localization and segmentation inference on your own image:
 python infer_localization_and_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --image /path/to/image
 ```
 
-
-
-
 ## Part Segmentation
+As before use SSN_DINO to extract individual superpixels along with their features. Then we follow the DeepCut [^6] approach at the superpixel level to first identify the foreground superpixels, and then use a GNN to cluster the foreground superpixels into different parts.
+
+We can run the part segmentation task on the CUB-200-2011 dataset.
+
+```
+python parts_segmentation.py --weight 'model_checkpoints/ssn_dino.pth'
+```
+
+
+Sample part segmentation results:
+
+<img src="https://github.com/user-attachments/assets/883e6302-cc3c-4915-9987-e23d4fdcb421"  alt="os1"  width="450px" height="300px">
+<img src="https://github.com/user-attachments/assets/5cdbc237-4d2d-4093-b0aa-108ecefbcee9"  alt="os2"  width="450px" height="300px">
 
 
 ## References
 [^1]: https://github.com/NVlabs/ssn_superpixels
 [^2]: https://github.com/perrying/ssn-pytorch
-[^3]:https://github.com/lukemelas/unsupervised-image-segmentation
-[^4]:https://github.com/lukemelas/deep-spectral-segmentation
+[^3]: https://github.com/lukemelas/unsupervised-image-segmentation
+[^4]: https://github.com/lukemelas/deep-spectral-segmentation
+[^5]: https://github.com/subhc/unsup-parts
+[^6]: https://github.com/SAMPL-Weizmann/DeepCut
