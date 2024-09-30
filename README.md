@@ -201,6 +201,10 @@ Sample part segmentation results:
 <img src="https://github.com/user-attachments/assets/883e6302-cc3c-4915-9987-e23d4fdcb421"  alt="os1"  width="450px" height="300px">
 <img src="https://github.com/user-attachments/assets/5cdbc237-4d2d-4093-b0aa-108ecefbcee9"  alt="os2"  width="450px" height="300px">
 
+To perform part segmentation inference on your own image:
+```
+python infer_parts_segmentation.py --weight 'model_checkpoints/ssn_dino.pth' --image /path/to/image
+```
 
 ## References
 [^1]: https://github.com/NVlabs/ssn_superpixels
